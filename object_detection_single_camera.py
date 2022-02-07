@@ -1,4 +1,7 @@
 # import the necessary packages
+import os
+import time
+
 from imutils import build_montages
 from datetime import datetime
 import numpy as np
@@ -58,6 +61,10 @@ mH = args["montageH"]
 print("[INFO] detecting: {}...".format(", ".join(obj for obj in
                                                  CONSIDER)))
 
+folder_names = {}
+
+ATMID = 'ATMGZB01'
+
 # start looping over all the frames
 while True:
     # receive RPi name and frame from the RPi and acknowledge the receipt
@@ -75,10 +82,22 @@ while True:
     if rpiName not in lastActive.keys():
         print("[INFO] receiving data from {}...".format(rpiName))
 
-        # save video
-        frame_size = (w, h)
-        out = cv2.VideoWriter(f'{rpiName}.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, frame_size)
-        videoWriter[rpiName] = out
+        # # save video
+        # frame_size = (w, h)
+        # out = cv2.VideoWriter(f'{rpiName}.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, frame_size)
+        # videoWriter[rpiName] = out
+
+        # create a folder to store frames in interval of 30 mins
+        startTime = str(datetime.now())
+        correctedStartTime = startTime.replace('-', '_')
+        correctedStartTime = correctedStartTime.replace(' ', '_')
+        correctedStartTime = correctedStartTime.replace(':', '_')
+        correctedStartTime = correctedStartTime.replace('.', '_')
+        folder_name = f'{ATMID}_{rpiName}_{correctedStartTime}'
+        folder_path = f'frames/{folder_name}'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        folder_names[rpiName] = {'currentFolderTime': startTime, 'currentFolderName': folder_path}
 
     # record the last active time for the device from which we just
     # received a frame
@@ -131,7 +150,9 @@ while True:
     # update the new frame in the frame dictionary
     frameDict[rpiName] = frame
 
-    videoWriter[rpiName].write(frameDict[rpiName])
+    # save frame
+    cv2.imwrite(f"{folder_names[rpiName]['currentFolderName']}/frame{int(time.time())}.jpg", frame)
+    # videoWriter[rpiName].write(frameDict[rpiName])
 
     # build a montage using images in the frame dictionary
     montages = build_montages(frameDict.values(), (w, h), (mW, mH))

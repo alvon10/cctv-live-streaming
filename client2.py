@@ -19,7 +19,7 @@ sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format(
 # camera sensor to warmup
 rpiName = 'logi'
 # vs = VideoStream(usePiCamera=True).start()
-vs = VideoStream(src=1).start()
+vs = VideoStream(src='https://192.168.1.15:8080').start()
 # vs = VideoStream(usePiCamera=True, resolution=(320, 240)).start()
 
 time.sleep(2.0)
